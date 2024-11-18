@@ -1,14 +1,15 @@
-# Create the README.md content
-readme_content = """
-# OpenSource Project Documentation
+# OpenSource Components for IBM LinuxONE on Red Hat OpenShift
 
-This repository contains various resources, including Dockerfiles, configuration files, and scripts for setting up and managing open-source tools and services.
+This repository includes a collection of open-source components and workloads designed specifically for deployment on **IBM LinuxONE** systems running **Red Hat OpenShift**. These components leverage the unique capabilities of IBM LinuxONE, including scalability, security, and performance, while ensuring compatibility with OpenShift environments.
+
+## Directory Structure and Descriptions
 
 ## Directory Structure
 
 Below is an overview of the folder structure and their contents:
 
 ### `Opensource/airflow`
+- **Purpose**: Deployment resources for Apache Airflow, a platform for orchestrating complex workflows.
 - **Files**:
   - `airflow-scheduler-StatsD-deployment.yaml`: Deployment file for the Airflow scheduler with StatsD integration.
   - `Dockerfile-k8s.10.17.24`: Dockerfile for Kubernetes integration.
@@ -22,11 +23,13 @@ Below is an overview of the folder structure and their contents:
   - `image.txt`: Contains Docker image details.
 
 #### `Opensource/apache spark/files`
+- **Purpose**: Resources for deploying Apache Spark on IBM LinuxONE.
 - **Files**:
   - Various entrypoint scripts (`entrypoint.sh` variations) for Spark deployment.
   - Kubernetes configuration files (`mutatingwebhookconfiguration-spark-operator-webhook.yaml`, `spark-operator-controller.yaml`, etc.).
 
 ### `Opensource/external-secrets`
+- **Purpose**: Manage external secrets securely on Kubernetes using IBM LinuxONE.
 - **Files**:
   - `Dockerfile.s390x`: Dockerfile for IBM s390x architecture.
   - `Dockerfile.ubi`: Dockerfile for UBI-based builds.
@@ -79,7 +82,7 @@ This folder contains Dockerfiles and configuration files for various services (e
 
 1. **Clone the Repository**:
    ```bash
-   git clone <repository_url>
-   cd Opensource
+   git clone https://github.com/tonyfieit75/oss-package-for-z.git
+   cd oss-package-for-z
 
 
