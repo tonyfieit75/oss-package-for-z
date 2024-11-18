@@ -8,7 +8,7 @@ This repository includes a collection of open-source components and workloads de
 
 Below is an overview of the folder structure and their contents:
 
-### `Opensource/airflow`
+### `apache-airflow`
 - **Purpose**: Deployment resources for Apache Airflow, a platform for orchestrating complex workflows.
 - **Files**:
   - `airflow-scheduler-StatsD-deployment.yaml`: Deployment file for the Airflow scheduler with StatsD integration.
@@ -16,19 +16,19 @@ Below is an overview of the folder structure and their contents:
   - `Dockerfile.10.17.24`: Dockerfile for Airflow deployment.
   - `image.txt`: Contains Docker image details.
 
-### `Opensource/apache spark`
+### `apache-spark`
 - **Files**:
   - `Dockerfile`: Standard Dockerfile for Apache Spark.
   - `Dockerfile.10.1.24`: Alternative Dockerfile for Apache Spark.
   - `image.txt`: Contains Docker image details.
 
-#### `Opensource/apache spark/files`
+#### `apache-spark/files`
 - **Purpose**: Resources for deploying Apache Spark on IBM LinuxONE.
 - **Files**:
   - Various entrypoint scripts (`entrypoint.sh` variations) for Spark deployment.
   - Kubernetes configuration files (`mutatingwebhookconfiguration-spark-operator-webhook.yaml`, `spark-operator-controller.yaml`, etc.).
 
-### `Opensource/external-secrets`
+### `external-secrets`
 - **Purpose**: Manage external secrets securely on Kubernetes using IBM LinuxONE.
 - **Files**:
   - `Dockerfile.s390x`: Dockerfile for IBM s390x architecture.
@@ -36,35 +36,35 @@ Below is an overview of the folder structure and their contents:
   - `images.txt`: Contains Docker image details.
   - `ubi-build-files-s390x.txt`: Build instructions for s390x architecture.
 
-#### `Opensource/external-secrets/deployments`
+#### `external-secrets/deployments`
 - **Files**:
   - Various Kubernetes deployment YAML files for external secrets and Vault integration.
 
-### `Opensource/nats-box`
+### `nats-box`
 - **Files**:
   - `Dockerfile`: Dockerfile for NATS Box.
 
-### `Opensource/nats-operator`
+### `nats-operator`
 - **Files**:
   - `Dockerfile.s390x`: Dockerfile for IBM s390x architecture.
   - `images`: Contains Docker image details.
 
-### `Opensource/reloader`
+### `reloader`
 - **Files**:
   - `Dockerfile`: Standard Dockerfile for the Reloader tool.
   - `Dockerfile.ubi`: Dockerfile for UBI-based builds.
 
-### `Opensource/spark-operator`
+### `spark-operator`
 - **Files**:
   - Multiple Dockerfiles for different Spark operator configurations.
   - `image.txt`: Contains Docker image details.
   - Kubernetes configuration files for the Spark operator (`spark-operator-webhook-role.yaml`, `spark-service-account.yaml`, etc.).
 
-### `Opensource/splunk-otel-collector`
+### `splunk-otel-collector`
 - **Files**:
   - `Dockerfile`: Dockerfile for Splunk OTEL Collector.
 
-#### `Opensource/splunk-otel-collector/docker`
+#### `splunk-otel-collector/docker`
 - **Files**:
   - `.env`: Environment file.
   - `docker-compose.yml`: Docker Compose file.
@@ -73,7 +73,7 @@ Below is an overview of the folder structure and their contents:
 #### Subdirectories
 This folder contains Dockerfiles and configuration files for various services (e.g., Apache, MySQL, Redis). Each service folder includes relevant Dockerfiles and scripts.
 
-### `Opensource/Vault`
+### `hashicorp-vault`
 - **Files**:
   - `Dockerfile`: Dockerfile for Vault.
   - `image.txt`: Contains Docker image details.
