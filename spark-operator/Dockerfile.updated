@@ -1,0 +1,66 @@
+# Use Go base image for building the Spark operator
+FROM golang:1.20 AS builder
+
+WORKDIR /workspace
+
+# Install necessary system dependencies
+RUN apt-get update && apt-get install -y libcap2-bin && rm -rf /var/lib/apt/lists/*
+
+# Copy go.mod and go.sum to the working directory
+COPY go.mod go.sum ./
+
+# Download Go modules
+RUN go mod download
+
+# Copy the rest of the application code
+COPY . .
+
+# Use Go build cache to speed up subsequent builds
+ENV GOCACHE=/root/.cache/go-build
+ARG TARGETARCH
+
+# Build the operator binary with the correct architecture
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GO111MODULE=on make build-operator
+
+# Adjust permissions for the operator binary to allow binding to lower ports
+RUN setcap 'cap_net_bind_service=+ep' /workspace/bin/spark-operator
+
+# Use the final base image (Spark)
+FROM s390x/alpine:3.16
+
+# Install OpenJDK, tini, and necessary packages
+RUN apk add --no-cache openjdk11 tini bash
+
+# Set environment variables for Spark
+ENV SPARK_HOME=/opt/spark
+ENV HADOOP_HOME=${SPARK_HOME}
+ENV LD_LIBRARY_PATH=${HADOOP_HOME}/lib/native:$LD_LIBRARY_PATH
+ENV PATH="${SPARK_HOME}/bin:${PATH}"
+
+# Copy Spark installation from the previous build
+COPY --from=builder /workspace/bin/spark-operator /usr/bin/spark-operator
+
+# Fix permission issues with Spark Operator binary
+RUN chmod +x /usr/bin/spark-operator
+
+# Set up directories for webhook server certificates
+RUN mkdir -p /etc/k8s-webhook-server/serving-certs && \
+    chmod -R g+rw /etc/k8s-webhook-server/serving-certs && \
+    chown -R root:root /etc/k8s-webhook-server/serving-certs
+
+# Create a spark user to avoid running as root
+RUN addgroup -S spark && adduser -S -G spark spark
+
+# Set permissions for the spark user
+RUN chown -R spark:spark /opt/spark && \
+    chown -R spark:spark /etc/k8s-webhook-server/serving-certs
+
+# Switch to the non-root spark user
+USER spark
+
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/bin/
+
+# Set the entrypoint to tini for proper process management
+ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/entrypoint.sh"]
+

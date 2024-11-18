@@ -1,0 +1,22 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: spark-pi
+  namespace: default
+spec:
+  type: Scala
+  mode: cluster
+  image: "quay.io/tonyfieit75/spark-3.2.0:s390x-4"  # Your new custom Spark image
+  imagePullPolicy: Always
+  mainClass: org.apache.spark.examples.SparkPi
+  mainApplicationFile: "local:///opt/spark/examples/jars/spark-examples_2.13-3.2.0.jar"
+  sparkVersion: "3.2.0"
+  driver:
+    cores: 1
+    memory: "512m"
+    serviceAccount: spark
+  executor:
+    cores: 1
+    instances: 2
+    memory: "512m"
+

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  namespace: airflow
+  labels:
+    app: airflow
+    component: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      containers:
+      - name: scheduler
+        image: quay.io/tonyfieit75/airflow:s390x-1  # Airflow Scheduler
+        command: ["airflow", "scheduler"]
+        env:
+        - name: AIRFLOW__METRICS__STATSD_ON
+          value: "true"
+        - name: AIRFLOW__METRICS__STATSD_HOST
+          value: "localhost"  # StatsD will be running as a sidecar on localhost
+        - name: AIRFLOW__METRICS__STATSD_PORT
+          value: "8125"
+        - name: AIRFLOW__METRICS__STATSD_PREFIX
+          value: "airflow"
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "CeleryExecutor"  # or another executor
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: "postgresql+psycopg2://airflow:airflow@postgres-airflow-service:5432/airflow"
+        volumeMounts:
+        - name: airflow-dags
+          mountPath: /opt/airflow/dags
+        - name: airflow-logs
+          mountPath: /opt/airflow/logs
+
+      - name: statsd
+        image: quay.io/tonyfieit75/statsd-exporter:s390x-1 # StatsD exporter sidecar
+        ports:
+        - containerPort: 8125
+          protocol: UDP
+        volumeMounts:
+        - name: airflow-logs
+          mountPath: /opt/airflow/logs
+      volumes:
+      - name: airflow-dags
+        persistentVolumeClaim:
+          claimName: airflow-dags-pvc
+      - name: airflow-logs
+        persistentVolumeClaim:
+          claimName: airflow-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-scheduler-service
+  namespace: airflow
+  labels:
+    app: airflow
+    component: scheduler
+spec:
+  ports:
+  - port: 8793
+    protocol: TCP
+  selector:
+    app: airflow
+    component: scheduler
+

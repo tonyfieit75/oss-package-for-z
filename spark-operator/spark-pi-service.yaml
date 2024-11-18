@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-pi-driver-svc
+  labels:
+    spark-role: driver
+spec:
+  selector:
+    spark-role: driver
+    sparkoperator.k8s.io/app-name: spark-pi
+  ports:
+    - protocol: TCP
+      port: 4040  # Spark Web UI default port
+      targetPort: 4040
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: spark-pi-driver-route
+spec:
+  to:
+    kind: Service
+    name: spark-pi-driver-svc
+  port:
+    targetPort: 4040  # Target port as defined in the service
+

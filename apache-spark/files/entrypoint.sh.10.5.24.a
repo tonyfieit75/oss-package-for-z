@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ "$SPARK_MODE" = "master" ]; then
+    /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+elif [ "$SPARK_MODE" = "worker" ]; then
+    /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://$SPARK_MASTER_HOST:7077
+elif [ "$SPARK_MODE" = "driver" ]; then
+    # Specify the main class and JAR directly
+    /opt/spark/bin/spark-submit \
+      --class org.apache.spark.examples.SparkPi \
+      local:///opt/spark/examples/jars/spark-examples_2.13-3.2.0.jar
+elif [ "$SPARK_MODE" = "executor" ]; then
+    /opt/spark/bin/spark-class org.apache.spark.executor.CoarseGrainedExecutorBackend --driver-url $SPARK_DRIVER_URL --executor-id $SPARK_EXECUTOR_ID --hostname $SPARK_LOCAL_IP --cores $SPARK_EXECUTOR_CORES --app-id $SPARK_APPLICATION_ID --worker-url $SPARK_WORKER_URL
+else
+    echo "Unknown SPARK_MODE: $SPARK_MODE"
+    exit 1
+fi
+

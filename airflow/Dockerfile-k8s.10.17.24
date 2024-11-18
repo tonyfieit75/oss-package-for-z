@@ -1,0 +1,105 @@
+# Base image
+FROM mirror.gcr.io/s390x/debian:bullseye-slim
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV JAVA_HOME=/opt/openjdk
+ENV PATH=$JAVA_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV AIRFLOW_VERSION=2.3.0
+
+# Install necessary packages, including Rust and Cargo for cryptography build
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    g++ \
+    curl \
+    git \
+    python3-dev \
+    python3-pip \
+    unzip \
+    zip \
+    libssl-dev \
+    libffi-dev \
+    cargo \
+    libc-ares-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    libc++-dev \
+    libc++abi-dev \
+    libstdc++-10-dev \
+    ca-certificates \
+    pybind11-dev \
+    make \
+    cmake \
+    wget \
+    postgresql-server-dev-all \
+    libxml2-dev \
+    libxslt1-dev \
+    libmariadb-dev \
+    libmariadb-dev-compat \
+    pkg-config \
+    libkrb5-dev \
+    libsasl2-dev \
+    libldap2-dev \
+    openssl && \
+    apt-get clean
+
+# Install Rust and Cargo
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+
+# Ensure Rust and Cargo are on the PATH
+RUN . "$HOME/.cargo/env" && \
+    rustup update stable && \
+    rustc --version
+
+# Ensure pip3 is properly installed and symlinked
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    ln -s /usr/bin/pip3 /usr/local/bin/pip || true
+
+# Install OpenJDK
+RUN curl -L -o openjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11+9/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.11_9.tar.gz && \
+    mkdir -p /opt/openjdk && \
+    tar -zxf openjdk.tar.gz -C /opt/openjdk --strip-components=1 && \
+    rm openjdk.tar.gz
+
+# Install cryptography, allowing the build from source
+RUN . "$HOME/.cargo/env" && \
+    pip install cryptography
+
+# Install pendulum 2.1.2 to avoid TypeError issues with Airflow
+RUN pip install pendulum==2.1.2
+
+# Install Kubernetes python client libraries without trying to uninstall PyYAML
+RUN pip install --no-deps kubernetes kubernetes_asyncio && \
+    pip install --ignore-installed PyYAML==6.0.2
+
+# Install WebSocket client library
+RUN pip install websocket-client
+
+# Install Google Auth dependencies
+RUN pip install google-auth google-auth-oauthlib google-auth-httplib2
+
+# Install `durationpy` for Kubernetes library
+RUN pip install durationpy
+
+# Install Apache Airflow
+RUN pip install "apache-airflow[celery,postgres,s3,ldap,mysql,redis]==${AIRFLOW_VERSION}"
+
+# Install the Airflow Kubernetes Provider, skip grpcio if not essential
+RUN pip install --no-deps apache-airflow-providers-cncf-kubernetes==6.0.0 --ignore-installed PyYAML
+
+# Clone and install Google Test
+RUN git clone https://github.com/google/googletest.git && \
+    cd googletest && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc) && \
+    make install
+
+# Create the Airflow working directory
+WORKDIR /usr/local/airflow
+
+# Command to run the Airflow webserver
+CMD ["airflow", "webserver"]
+

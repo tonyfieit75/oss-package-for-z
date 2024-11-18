@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hashicorp-vault
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      containers:
+      - name: vault
+        image: quay.io/tonyfieit75/hashicorp-vault:s390x-1
+        ports:
+        - containerPort: 8200
+        volumeMounts:
+        - name: vault-storage
+          mountPath: /vault/data
+        env:
+        - name: VAULT_DEV_ROOT_TOKEN_ID
+          value: "root"
+        - name: VAULT_DEV_LISTEN_ADDRESS
+          value: "0.0.0.0:8200"
+        securityContext:
+          privileged: true
+      volumes:
+      - name: vault-storage
+        persistentVolumeClaim:
+          claimName: vault-pvc
+

@@ -1,0 +1,1 @@
+quay.io/tonyfieit75/external-secrets-operator:s390x-1

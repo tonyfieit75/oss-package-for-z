@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# If SPARK_MODE is not set, assume we're running in Kubernetes mode and skip the check.
+if [ -z "$SPARK_MODE" ]; then
+    # In Kubernetes, default to spark-submit (client mode)
+    /opt/spark/bin/spark-submit "$@"
+    exit 0
+fi
+
+# Handle the different SPARK_MODE values.
+if [ "$SPARK_MODE" = "master" ]; then
+    /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+elif [ "$SPARK_MODE" = "worker" ]; then
+    /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://$SPARK_MASTER_HOST:7077
+elif [ "$SPARK_MODE" = "client" ]; then
+    /opt/spark/bin/spark-submit "$@"
+else
+    echo "Unknown SPARK_MODE: $SPARK_MODE"
+    exit 1
+fi
+

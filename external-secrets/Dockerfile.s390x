@@ -1,0 +1,51 @@
+# Stage 1: Use Prebuilt Go 1.21.1 for Building the Operator
+FROM mirror.gcr.io/s390x/ubuntu:20.04 AS builder
+
+# Install build dependencies and CA certificates
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    ca-certificates
+
+# Download and install a pre-built version of Go 1.21.1
+RUN curl -OL https://go.dev/dl/go1.21.1.linux-s390x.tar.gz && \
+    tar -C /usr/local -xzf go1.21.1.linux-s390x.tar.gz
+
+# Set Go 1.21.1 in the PATH
+ENV PATH="/usr/local/go/bin:$PATH"
+
+WORKDIR /workspace
+
+# Copy Go modules and download dependencies
+COPY go.mod go.sum ./
+
+# Replace the original module with your forked version
+RUN go mod tidy
+
+# Alternatively, ensure that the replace directive is present in go.mod
+# You can uncomment the following line if needed
+# RUN go get github.com/tonyfieit75/go-client-library-passwordsafe@v0.0.2
+
+# Copy the rest of the source code
+COPY . .
+
+# Build the operator using Go 1.21.1
+RUN CGO_ENABLED=0 GOARCH=s390x GOOS=linux go build -o external-secrets-operator ./main.go
+
+# Stage 2: Create Final Runtime Image
+FROM s390x/alpine:3.15
+
+WORKDIR /workspace
+
+# Copy the compiled binary from the builder stage
+COPY --from=builder /workspace/external-secrets-operator /usr/local/bin/external-secrets-operator
+
+# Set file permissions
+RUN chmod +x /usr/local/bin/external-secrets-operator
+
+# Run the operator as a non-root user
+USER 65532:65532
+
+ENTRYPOINT ["/usr/local/bin/external-secrets-operator"]
+
